@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: microdb
+    ports:
+      - "5432:5432"
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://admin:1234@db:5432/microdb
+      - PYTHONPATH=.  # Bu satırı eklediğinden emin ol
+    depends_on:
+      - db
