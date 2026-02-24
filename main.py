@@ -8,15 +8,15 @@ from app.db.database import engine, Base
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("KawienAI-Production")
+logger = logging.getLogger("Special Topics in Software Development HW-Production")
 
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Kawien AI Notes Pro")
+app = FastAPI(title="Special Topics in Software Development HW Notes Pro")
 
 
-API_KEY = "kawien_secret_key_2024"
+API_KEY = "secret_key_2024"
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
 async def verify_api_key(header: str = Security(api_key_header)):
@@ -40,4 +40,4 @@ app.include_router(note_router, prefix="/api/v1/notes", tags=["Notes"], dependen
 
 @app.get("/")
 def home():
-    return {"status": "Kawien AI API Online", "ui": "/static/index.html"}
+    return {"status": "Special Topics in Software Development AI API Online", "ui": "/static/index.html"}
