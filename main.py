@@ -1,26 +1,43 @@
-from fastapi import FastAPI
+import time
+import logging
+from fastapi import FastAPI, Request, Security, HTTPException, Depends
+from fastapi.security.api_key import APIKeyHeader
+from fastapi.staticfiles import StaticFiles
 from app.api.endpoints import router as note_router
 from app.db.database import engine, Base
-import logging
 
-# Observability: Profesyonel loglama başlat
+
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("NotesAPI")
+logger = logging.getLogger("KawienAI-Production")
 
-# DB tablolarını ayağa kaldır (Production'da genelde Alembic kullanılır)
+
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Notes Microservice Pro",
-    description="Clean Architecture & AI Integrated Microservice",
-    version="1.1.0"
-)
+app = FastAPI(title="Kawien AI Notes Pro")
 
-# Health Check (K8s/Docker için kritik!)
-@app.get("/health", tags=["Monitoring"])
-def health():
-    return {"status": "up", "database": "connected"}
 
-app.include_router(note_router, prefix="/api/v1/notes", tags=["Notes Management"])
+API_KEY = "kawien_secret_key_2024"
+api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
-logger.info("Service is ready to handle requests 🚀")
+async def verify_api_key(header: str = Security(api_key_header)):
+    if header != API_KEY:
+        raise HTTPException(status_code=403, detail="Yetkisiz Erişim!")
+    return header
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    logger.info(f"Yol: {request.url.path} | Süre: {duration:.4f}s")
+    return response
+
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+app.include_router(note_router, prefix="/api/v1/notes", tags=["Notes"], dependencies=[Depends(verify_api_key)])
+
+@app.get("/")
+def home():
+    return {"status": "Kawien AI API Online", "ui": "/static/index.html"}

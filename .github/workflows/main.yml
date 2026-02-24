@@ -1,25 +1,17 @@
-name: CI Pipeline
-
-# Kod her pushlandığında bu süreç otomatik tetiklenir
+name: Python CI/CD
 on: [push]
-
 jobs:
   build:
-    # GitHub'ın bu testleri hangi işletim sisteminde yapacağını belirtir (Eksik olan kısım buydu)
     runs-on: ubuntu-latest
-
     steps:
-      # Proje dosyalarını GitHub sunucusuna çeker
       - uses: actions/checkout@v3
-
-      # Python ortamını kurar
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      # Bağımlılıkları (FastAPI, SQLAlchemy vb.) yükler
       - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Lint with flake8
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
