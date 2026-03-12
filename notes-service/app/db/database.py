@@ -17,9 +17,7 @@ Base = declarative_base()
 
 
 def get_db():
-    """
-    FastAPI endpoint'lerinde veritabanı oturumu açar ve iş bitince kapatır.
-    """
+    
     db = SessionLocal()
     try:
         yield db

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Intelligent Note Pro - Ultra Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --sidebar-bg: #ffffff;
+            --main-bg: #f3f4f6;
+            --card-default: #ffffff;
+            --card-red: #fee2e2;
+            --card-red-border: #ef4444;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--main-bg); margin: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+
+        #auth-overlay {
+            position: fixed; inset: 0; background: rgba(243, 244, 246, 0.95);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 24px; width: 100%; max-width: 360px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center;
+        }
+        .login-input {
+            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e5e7eb;
+            border-radius: 10px; outline: none; box-sizing: border-box;
+        }
+
+       
+        .sidebar { 
+            width: 280px; background: var(--sidebar-bg); border-right: 1px solid #e5e7eb;
+            padding: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-item { 
+            padding: 12px 15px; border-radius: 12px; cursor: pointer; color: #4b5563;
+            transition: 0.2s; display: flex; align-items: center; gap: 12px; font-weight: 500;
+        }
+        .nav-item:hover { background: #f9fafb; color: var(--primary); }
+        .nav-item.active { background: #eef2ff; color: var(--primary); }
+
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; align-items: center; padding-top: 30px; }
+
+        .input-container {
+            width: 100%; max-width: 600px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
+            margin-bottom: 40px; transition: 0.3s; padding: 10px 15px;
+        }
+        .input-header { display: flex; align-items: center; justify-content: space-between; }
+        .input-header input { border: none; outline: none; width: 100%; font-size: 1rem; font-weight: 600; padding: 10px 0; }
+        
+        #expanded-controls { display: none; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px; }
+        .input-container.active #expanded-controls { display: block; }
+        
+        textarea { width: 100%; border: none; outline: none; resize: none; font-family: inherit; font-size: 0.95rem; color: #374151; }
+        
+        .control-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-top: 15px; }
+        select, .url-input { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; font-size: 0.85rem; }
+        
+        .color-picker { display: flex; gap: 5px; }
+        .color-opt { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-opt.selected { border-color: var(--primary); }
+
+        .grid { width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+
+        .note-card { 
+            background: white; border-radius: 16px; border: 1px solid #e5e7eb;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+            display: flex; flex-direction: column; height: fit-content;
+        }
+        .note-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .note-card.important { border: 2px solid var(--card-red-border) !important; background-color: var(--card-red) !important; }
+
+        .card-img { width: 100%; object-fit: cover; max-height: 180px; border-radius: 16px 16px 0 0; }
+        .card-content { padding: 15px; }
+        .card-category { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px; display: block; }
+        .card-title { margin: 0 0 10px 0; font-size: 1.1rem; font-weight: 700; color: #111827; }
+        .card-text { font-size: 0.9rem; color: #4b5563; line-height: 1.5; margin: 0; }
+
+        .ai-insight { 
+            margin-top: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; padding: 10px;
+            font-size: 0.8rem; border: 1px dashed rgba(99, 102, 241, 0.3); color: #4f46e5;
+        }
+        
+        .delete-btn, .share-btn { 
+            position: absolute; top: 10px; background: rgba(255,255,255,0.8);
+            border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; 
+            opacity: 0; transition: 0.2s; z-index: 5; display: flex; align-items: center; justify-content: center;
+        }
+        .delete-btn { right: 10px; color: #ef4444; }
+        .share-btn { right: 45px; color: #6366f1; }
+        .note-card:hover .delete-btn, .note-card:hover .share-btn { opacity: 1; }
+
+        .save-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; float: right; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="login-card">
+            <div class="logo" style="justify-content:center; margin-bottom:10px;"><i class="fas fa-robot"></i> SPECIAL TOPICS IN SOFTWARE DEVELOPMENT - PROJECT NAME : AI NOTES</div>
+            <p style="color:#6b7280; font-size:0.9rem; margin-bottom:20px;">Microservice Auth Gateway</p>
+            <input type="text" id="user" class="login-input" placeholder="Username (admin)">
+            <input type="password" id="pass" class="login-input" placeholder="Password (1234)">
+            <button class="save-btn" onclick="handleLogin()" style="width:100%; float:none; margin-top:10px;">Login</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-robot"></i> SPECIAL TOPICS IN SOFTWARE DEVELOPMENT - PROJECT NAME : AI NOTES</div>
+        <div class="nav-item active" onclick="filterNotes('All', this)"><i class="fas fa-sticky-note"></i> All Notes</div>
+        <div class="nav-item" onclick="filterNotes('Work', this)"><i class="fas fa-briefcase"></i> Work</div>
+        <div class="nav-item" onclick="filterNotes('School', this)"><i class="fas fa-graduation-cap"></i> School</div>
+        <div class="nav-item" onclick="filterNotes('Personal', this)"><i class="fas fa-home"></i> Personal</div>
+        <hr style="width:100%; border:0; border-top:1px solid #f3f4f6; margin: 10px 0;">
+        <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+    </div>
+
+    <div class="content-area">
+        <div class="input-container" id="mainInput">
+            <div class="input-header">
+                <input type="text" id="t" placeholder="Take a note..." onfocus="expandInput()">
+                <i class="fas fa-plus-circle" style="color:#d1d5db"></i>
+            </div>
+            <div id="expanded-controls">
+                <textarea id="c" rows="3" placeholder="Note details..."></textarea>
+                <div class="control-row">
+                    <select id="cat">
+                        <option value="General"> General</option>
+                        <option value="Work"> Work</option>
+                        <option value="School"> School</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                    <input type="text" id="imgUrl" class="url-input" placeholder="Image URL (Optional)">
+                    <div class="color-picker">
+                        <div class="color-opt selected" style="background:#ffffff" data-color="#ffffff"></div>
+                        <div class="color-opt" style="background:#fef3c7" data-color="#fef3c7"></div>
+                        <div class="color-opt" style="background:#d1fae5" data-color="#d1fae5"></div>
+                        <div class="color-opt" style="background:#e0e7ff" data-color="#e0e7ff"></div>
+                        <div class="color-opt" style="background:#fae8ff" data-color="#fae8ff"></div>
+                    </div>
+                    <label style="font-size:0.8rem; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                        <input type="checkbox" id="imp">  Important
+                    </label>
+                </div>
+                <div style="margin-top:20px; overflow:hidden;">
+                    <button class="save-btn" onclick="ekle()">Save Note</button>
+                    <button style="float:right; background:none; border:none; color:#9ca3af; margin-right:15px; cursor:pointer;" onclick="closeInput()">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="liste" class="grid"></div>
+    </div>
+
+    <script>
+        let allNotes = [];
+        let currentFilter = 'All';
+        let selectedColor = '#ffffff';
+
+        
+        async function handleLogin() {
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
+            const formData = new FormData();
+            formData.append('username', user);
+            formData.append('password', pass);
+
+            try {
+                const res = await fetch('/api/auth/login', { method: 'POST', body: formData });
+                if(res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('token', data.access_token);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    listele();
+                } else { alert("Invalid login!"); }
+            } catch (err) { alert("Auth service is offline!"); }
+        }
+
+        function logout() { localStorage.removeItem('token'); location.reload(); }
+
+        function expandInput() { document.getElementById('mainInput').classList.add('active'); }
+        function closeInput() { document.getElementById('mainInput').classList.remove('active'); }
+
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.onclick = () => {
+                document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedColor = opt.dataset.color;
+            };
+        });
+
+       
+        async function listele() {
+            const token = localStorage.getItem('token');
+            if(!token) return;
+            try {
+                const res = await fetch('/api/notes/', { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.status === 401) return logout();
+                allNotes = await res.json();
+                renderDisplay();
+            } catch (err) { console.error("Fetch error:", err); }
+        }
+
+        function renderDisplay() {
+            const list = document.getElementById('liste');
+            const filtered = currentFilter === 'All' ? allNotes : allNotes.filter(n => n.category === currentFilter);
+
+            list.innerHTML = filtered.map(n => `
+                <div class="note-card ${n.is_important ? 'important' : ''}" style="background-color: ${n.is_important ? '' : (n.bg_color || '#ffffff')}">
+                    <button class="delete-btn" onclick="sil(${n.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                    <button class="share-btn" onclick="mailAt(${n.id})" title="Send to Email"><i class="fas fa-envelope"></i></button>
+                    <div class="card-content">
+                        <span class="card-category">${n.category || 'General'}</span>
+                        <h3 class="card-title">${n.title} ${n.is_important ? '🚨' : ''}</h3>
+                        <p class="card-text">${n.content}</p>
+                        <div class="ai-insight">
+                            <i class="fas fa-bolt"></i> <b>AI Insight:</b> ${n.ai_summary}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+       
+        async function mailAt(id) {
+            const email = prompt("Enter recipient email address:");
+            if (!email) return;
+
+            const token = localStorage.getItem('token');
+            try {
+                
+                const res = await fetch(`/api/notes/${id}/share`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (res.ok) {
+                    alert(" SUCCESS: Note has been forwarded to the notification service! Check your docker logs.");
+                } else {
+                    alert("Error: Could not send email.");
+                }
+            } catch (err) { alert("Service communication error!"); }
+        }
+
+        async function ekle() {
+            const title = document.getElementById('t').value;
+            const content = document.getElementById('c').value;
+            const category = document.getElementById('cat').value;
+            const is_important = document.getElementById('imp').checked;
+            const token = localStorage.getItem('token');
+
+            if(!title || !content) return alert("Fields required!");
+
+            const res = await fetch('/api/notes/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ title, content, category, is_important, bg_color: selectedColor })
+            });
+
+            if(res.ok) {
+                listele();
+                closeInput();
+                document.getElementById('t').value = ''; document.getElementById('c').value = '';
+            } else { alert("Save failed!"); }
+        }
+
+        async function sil(id) {
+            const token = localStorage.getItem('token');
+            if(confirm('Delete?')) {
+                await fetch('/api/notes/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                listele();
+            }
+        }
+
+        function filterNotes(cat, el) {
+            currentFilter = cat;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            renderDisplay();
+        }
+
+        if(localStorage.getItem('token')) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            listele();
+        }
+    </script>
+</body>
+</html>

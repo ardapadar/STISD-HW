@@ -1,4 +1,7 @@
+version: '3.8'
+
 services:
+
   db:
     image: postgres:15-alpine
     environment:
@@ -6,19 +9,35 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: notesdb
     healthcheck:
-      
       test: ["CMD-SHELL", "pg_isready -U user -d notesdb"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  api:
-    build: .
-    ports:
-      - "8000:8000"
+  
+  notes-service:
+    build: ./notes-service
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/notesdb
       - PYTHONPATH=.
     depends_on:
       db:
         condition: service_healthy
+
+
+  auth-service:
+    build: ./auth-service
+
+  notification-service:
+    build: ./notification-service
+
+  
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"  
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - notes-service
+      - auth-service

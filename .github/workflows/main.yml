@@ -1,17 +1,36 @@
-name: Python CI/CD
-on: [push]
+name: Microservices CI/CD
+
+on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Lint with flake8
-        run: |
-          pip install flake8
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Check Auth Service
+      run: |
+        cd auth-service
+        pip install -r requirements.txt
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Check Notes Service
+      run: |
+        cd notes-service
+        pip install -r requirements.txt
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Check Notification Service
+      run: |
+        cd notification-service
+        pip install -r requirements.txt
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
