@@ -6,10 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4 # v4 yaptık (Hızlanır ve uyarıyı siler)
-
+    - uses: actions/checkout@v4 
     - name: Set up Python
-      uses: actions/setup-python@v5 # v5 yaptık
+      uses: actions/setup-python@v5 
       with:
         python-version: '3.10'
 

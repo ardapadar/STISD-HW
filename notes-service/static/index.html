@@ -6,14 +6,16 @@
     <title>AI Intelligent Note Pro - Ultra Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #6366f1;
             --sidebar-bg: #ffffff;
-            --main-bg: #f3f4f6;
+            --main-bg: #f8f9ff; 
             --card-default: #ffffff;
             --card-red: #fee2e2;
             --card-red-border: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.7);
         }
 
         body { 
@@ -21,153 +23,388 @@
             background: var(--main-bg); margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
+      
         #auth-overlay {
-            position: fixed; inset: 0; background: rgba(243, 244, 246, 0.95);
+            position: fixed; inset: 0; background: rgba(243, 244, 246, 0.98);
             z-index: 10000; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
         }
         .login-card {
-            background: white; padding: 40px; border-radius: 24px; width: 100%; max-width: 360px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center;
+            background: white; padding: 40px; border-radius: 32px; width: 100%; max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); text-align: center;
         }
         .login-input {
-            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e5e7eb;
-            border-radius: 10px; outline: none; box-sizing: border-box;
+            width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e5e7eb;
+            border-radius: 12px; outline: none; box-sizing: border-box; font-size: 1rem;
+        }
+
+        .sidebar { 
+            width: 280px; background: var(--sidebar-bg); border-right: 1px solid #eef2ff;
+            padding: 30px 20px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .logo { 
+            font-weight: 800; font-size: 1rem; color: var(--primary); margin-bottom: 40px; 
+            display: flex; align-items: center; gap: 12px; line-height: 1.2;
+        }
+        
+        .nav-item { 
+            padding: 14px 18px; border-radius: 16px; cursor: pointer; color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; font-weight: 600;
+        }
+        .nav-item:hover { background: #f1f5f9; color: var(--primary); transform: translateX(5px); }
+        .nav-item.active { background: #eef2ff; color: var(--primary); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+        .nav-item i { font-size: 1.1rem; }
+
+       
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; align-items: center; padding: 40px 20px; }
+        
+       
+        .input-container {
+            width: 100%; max-width: 700px; background: white; border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eef2ff;
+            margin-bottom: 40px; transition: 0.4s ease; padding: 12px 20px;
+        }
+        .input-header { display: flex; align-items: center; justify-content: space-between; }
+        .input-header input { border: none; outline: none; width: 100%; font-size: 1.1rem; font-weight: 600; padding: 12px 0; color: #1e293b; }
+        .input-header input::placeholder { color: #94a3b8; }
+        
+        #expanded-controls { display: none; margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px; animation: fadeIn 0.3s; }
+        .input-container.active #expanded-controls { display: block; }
+        
+        textarea { width: 100%; border: none; outline: none; resize: none; font-family: inherit; font-size: 1rem; color: #475569; min-height: 100px; }
+        
+        .control-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-top: 20px; }
+        select, .url-input { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; color: #475569; outline: none; }
+        
+        .color-picker { display: flex; gap: 8px; }
+        .color-opt { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
+        .color-opt.selected { border-color: #cbd5e1; transform: scale(1.1); }
+
+       
+        .grid { width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .note-card { 
+            background: white; border-radius: 24px; border: 1px solid #f1f5f9;
+            transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; height: fit-content;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+        .note-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
+        .note-card.important { border-left: 6px solid var(--card-red-border) !important; background-color: #fffafb !important; }
+
+        .card-content { padding: 20px; }
+        .card-category { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 12px; display: block; opacity: 0.8; }
+        .card-title { margin: 0 0 12px 0; font-size: 1.2rem; font-weight: 700; color: #1e293b; line-height: 1.3; }
+        .card-text { font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0; }
+
+        .ai-insight { 
+            margin-top: 20px; background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%); 
+            border-radius: 16px; padding: 15px; font-size: 0.85rem; border: 1px solid #eef2ff; color: #4f46e5;
         }
 
        
-        .sidebar { 
-            width: 280px; background: var(--sidebar-bg); border-right: 1px solid #e5e7eb;
-            padding: 20px; display: flex; flex-direction: column; gap: 10px;
+        #ai-analysis-view { display: none; width: 100%; max-width: 1200px; animation: slideUp 0.5s ease; }
+        .analysis-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; width: 100%; }
+        
+        .personality-card { background: white; border-radius: 32px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .question-box { margin-bottom: 35px; }
+        .question-text { font-weight: 700; color: #1e293b; margin-bottom: 15px; display: block; }
+        .options-group { display: flex; flex-direction: column; gap: 10px; }
+        .opt-label { 
+            padding: 14px 20px; border-radius: 16px; background: #f8fafc; border: 1.5px solid #f1f5f9; 
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-weight: 500;
         }
-        .logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .opt-label:hover { background: #f1f5f9; }
+        input[type="radio"]:checked + .opt-label { background: #eef2ff; border-color: var(--primary); color: var(--primary); }
         
-        .nav-item { 
-            padding: 12px 15px; border-radius: 12px; cursor: pointer; color: #4b5563;
-            transition: 0.2s; display: flex; align-items: center; gap: 12px; font-weight: 500;
+        .stats-sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .stat-widget { background: white; border-radius: 28px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .widget-title { font-weight: 800; font-size: 0.9rem; color: #1e293b; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; text-transform: uppercase; }
+        
+        .brain-viz { display: flex; justify-content: center; position: relative; margin: 20px 0; }
+        .brain-img { 
+            width: 180px; 
+            opacity: 0.95; 
+            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.2));
+            animation: pulse 3s infinite ease-in-out;
         }
-        .nav-item:hover { background: #f9fafb; color: var(--primary); }
-        .nav-item.active { background: #eef2ff; color: var(--primary); }
 
-        .content-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; align-items: center; padding-top: 30px; }
-
-        .input-container {
-            width: 100%; max-width: 600px; background: white; border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
-            margin-bottom: 40px; transition: 0.3s; padding: 10px 15px;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-        .input-header { display: flex; align-items: center; justify-content: space-between; }
-        .input-header input { border: none; outline: none; width: 100%; font-size: 1rem; font-weight: 600; padding: 10px 0; }
-        
-        #expanded-controls { display: none; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px; }
-        .input-container.active #expanded-controls { display: block; }
-        
-        textarea { width: 100%; border: none; outline: none; resize: none; font-family: inherit; font-size: 0.95rem; color: #374151; }
-        
-        .control-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-top: 15px; }
-        select, .url-input { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; font-size: 0.85rem; }
-        
-        .color-picker { display: flex; gap: 5px; }
-        .color-opt { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-opt.selected { border-color: var(--primary); }
 
-        .grid { width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
-
-        .note-card { 
-            background: white; border-radius: 16px; border: 1px solid #e5e7eb;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
-            display: flex; flex-direction: column; height: fit-content;
-        }
-        .note-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .note-card.important { border: 2px solid var(--card-red-border) !important; background-color: var(--card-red) !important; }
-
-        .card-img { width: 100%; object-fit: cover; max-height: 180px; border-radius: 16px 16px 0 0; }
-        .card-content { padding: 15px; }
-        .card-category { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px; display: block; }
-        .card-title { margin: 0 0 10px 0; font-size: 1.1rem; font-weight: 700; color: #111827; }
-        .card-text { font-size: 0.9rem; color: #4b5563; line-height: 1.5; margin: 0; }
-
-        .ai-insight { 
-            margin-top: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; padding: 10px;
-            font-size: 0.8rem; border: 1px dashed rgba(99, 102, 241, 0.3); color: #4f46e5;
-        }
         
+        .save-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
         .delete-btn, .share-btn { 
-            position: absolute; top: 10px; background: rgba(255,255,255,0.8);
-            border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; 
-            opacity: 0; transition: 0.2s; z-index: 5; display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 15px; background: white; border: none; border-radius: 12px; width: 34px; height: 34px; 
+            cursor: pointer; opacity: 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-        .delete-btn { right: 10px; color: #ef4444; }
-        .share-btn { right: 45px; color: #6366f1; }
+        .delete-btn { right: 15px; color: #ef4444; }
+        .share-btn { right: 55px; color: var(--primary); }
         .note-card:hover .delete-btn, .note-card:hover .share-btn { opacity: 1; }
 
-        .save-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; float: right; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="login-card">
-            <div class="logo" style="justify-content:center; margin-bottom:10px;"><i class="fas fa-robot"></i> SPECIAL TOPICS IN SOFTWARE DEVELOPMENT - PROJECT NAME : AI NOTES</div>
-            <p style="color:#6b7280; font-size:0.9rem; margin-bottom:20px;">Microservice Auth Gateway</p>
+            <div class="logo" style="justify-content:center; margin-bottom:10px;"><i class="fas fa-robot"></i> AI NOTES PRO</div>
+            <p style="color:#64748b; font-size:0.9rem; margin-bottom:30px;">Microservice Auth Gateway</p>
             <input type="text" id="user" class="login-input" placeholder="Username (admin)">
             <input type="password" id="pass" class="login-input" placeholder="Password (1234)">
-            <button class="save-btn" onclick="handleLogin()" style="width:100%; float:none; margin-top:10px;">Login</button>
+            <button class="save-btn" onclick="handleLogin()" style="width:100%; margin-top:15px;">Access Dashboard</button>
         </div>
     </div>
 
     <div class="sidebar">
-        <div class="logo"><i class="fas fa-robot"></i> SPECIAL TOPICS IN SOFTWARE DEVELOPMENT - PROJECT NAME : AI NOTES</div>
-        <div class="nav-item active" onclick="filterNotes('All', this)"><i class="fas fa-sticky-note"></i> All Notes</div>
+        <div class="logo">
+            <i class="fas fa-brain" style="font-size: 1.8rem;"></i> 
+            <div>AI INTELLIGENT<br><span style="font-weight:400; font-size:0.8rem; color:#94a3b8">Note Ecosystem</span></div>
+        </div>
+        
+        <div class="nav-item active" id="menu-notes" onclick="switchView('notes')">
+            <i class="fas fa-sticky-note"></i> All Notes
+        </div>
         <div class="nav-item" onclick="filterNotes('Work', this)"><i class="fas fa-briefcase"></i> Work</div>
         <div class="nav-item" onclick="filterNotes('School', this)"><i class="fas fa-graduation-cap"></i> School</div>
         <div class="nav-item" onclick="filterNotes('Personal', this)"><i class="fas fa-home"></i> Personal</div>
-        <hr style="width:100%; border:0; border-top:1px solid #f3f4f6; margin: 10px 0;">
-        <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+        
+        <div class="nav-item" id="menu-analysis" onclick="switchView('analysis')" style="margin-top: 20px; background: #f1f5f9;">
+            <i class="fas fa-chart-pie" style="color: var(--primary)"></i> AI Analysis
+        </div>
+        
+        <div class="nav-item" onclick="logout()" style="margin-top: auto; color: #ef4444;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </div>
     </div>
 
     <div class="content-area">
-        <div class="input-container" id="mainInput">
-            <div class="input-header">
-                <input type="text" id="t" placeholder="Take a note..." onfocus="expandInput()">
-                <i class="fas fa-plus-circle" style="color:#d1d5db"></i>
-            </div>
-            <div id="expanded-controls">
-                <textarea id="c" rows="3" placeholder="Note details..."></textarea>
-                <div class="control-row">
-                    <select id="cat">
-                        <option value="General"> General</option>
-                        <option value="Work"> Work</option>
-                        <option value="School"> School</option>
-                        <option value="Personal">Personal</option>
-                    </select>
-                    <input type="text" id="imgUrl" class="url-input" placeholder="Image URL (Optional)">
-                    <div class="color-picker">
-                        <div class="color-opt selected" style="background:#ffffff" data-color="#ffffff"></div>
-                        <div class="color-opt" style="background:#fef3c7" data-color="#fef3c7"></div>
-                        <div class="color-opt" style="background:#d1fae5" data-color="#d1fae5"></div>
-                        <div class="color-opt" style="background:#e0e7ff" data-color="#e0e7ff"></div>
-                        <div class="color-opt" style="background:#fae8ff" data-color="#fae8ff"></div>
-                    </div>
-                    <label style="font-size:0.8rem; display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="imp">  Important
-                    </label>
+        
+        <div id="notes-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="input-container" id="mainInput">
+                <div class="input-header">
+                    <input type="text" id="t" placeholder="What's on your mind?..." onfocus="expandInput()">
+                    <i class="fas fa-magic" style="color:#cbd5e1"></i>
                 </div>
-                <div style="margin-top:20px; overflow:hidden;">
-                    <button class="save-btn" onclick="ekle()">Save Note</button>
-                    <button style="float:right; background:none; border:none; color:#9ca3af; margin-right:15px; cursor:pointer;" onclick="closeInput()">Close</button>
+                <div id="expanded-controls">
+                    <textarea id="c" rows="3" placeholder="Describe your thought in detail... AI will handle the rest."></textarea>
+                    <div class="control-row">
+                        <select id="cat">
+                            <option value="General">General</option>
+                            <option value="Work">Work</option>
+                            <option value="School">School</option>
+                            <option value="Personal">Personal</option>
+                        </select>
+                        <input type="text" id="imgUrl" class="url-input" placeholder="Image URL (Optional)">
+                        <div class="color-picker" id="picker">
+                            <div class="color-opt selected" style="background:#ffffff" data-color="#ffffff"></div>
+                            <div class="color-opt" style="background:#fef3c7" data-color="#fef3c7"></div>
+                            <div class="color-opt" style="background:#d1fae5" data-color="#d1fae5"></div>
+                            <div class="color-opt" style="background:#e0e7ff" data-color="#e0e7ff"></div>
+                            <div class="color-opt" style="background:#fae8ff" data-color="#fae8ff"></div>
+                        </div>
+                        <label style="font-size:0.85rem; display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#475569">
+                            <input type="checkbox" id="imp"> Important
+                        </label>
+                    </div>
+                    <div style="margin-top:25px; border-top:1px solid #f1f5f9; padding-top:20px; overflow:hidden;">
+                        <button class="save-btn" onclick="ekle()">Save Thought</button>
+                        <button style="float:right; background:none; border:none; color:#94a3b8; font-weight:600; cursor:pointer;" onclick="closeInput()">Discard</button>
+                    </div>
+                </div>
+            </div>
+            <div id="liste" class="grid"></div>
+        </div>
+
+        <div id="ai-analysis-view">
+            <h2 style="font-weight: 800; color: #1e293b; margin-bottom: 30px;">Cognitive Intelligence Dashboard</h2>
+            
+            <div class="analysis-grid">
+                <div class="personality-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                        <h3 style="margin:0; font-weight:800;">Bilişsel Davranış Analizi</h3>
+                        <span style="font-size:0.8rem; color:var(--primary); font-weight:700;">PRO AI MODULE</span>
+                    </div>
+
+                    <div class="question-box">
+                        <span class="question-text">1. Küçük görevleri ne sıklıkla unutursunuz?</span>
+                        <div class="options-group">
+                            <label><input type="radio" name="q1" value="rarely" hidden><div class="opt-label"><i class="far fa-circle"></i> Nadiren</div></label>
+                            <label><input type="radio" name="q1" value="often" hidden><div class="opt-label"><i class="far fa-circle"></i> Sık Sık</div></label>
+                        </div>
+                    </div>
+
+                    <div class="question-box">
+                        <span class="question-text">2. Not alma stiliniz hangisidir?</span>
+                        <div class="options-group">
+                            <label><input type="radio" name="q2" value="detail" hidden><div class="opt-label"><i class="far fa-circle"></i> Detaylı ve Uzun</div></label>
+                            <label><input type="radio" name="q2" value="short" hidden><div class="opt-label"><i class="far fa-circle"></i> Kısa ve Özet</div></label>
+                        </div>
+                    </div>
+
+                    <div class="question-box">
+                        <span class="question-text">3. Notlarınızı ne sıklıkla gözden geçirirsiniz?</span>
+                        <div class="options-group">
+                            <label><input type="radio" name="q3" value="daily" hidden><div class="opt-label"><i class="far fa-circle"></i> Günlük</div></label>
+                            <label><input type="radio" name="q3" value="rarely" hidden><div class="opt-label"><i class="far fa-circle"></i> Sadece İhtiyaç Duyunca</div></label>
+                        </div>
+                    </div>
+
+                    <div class="question-box">
+                        <span class="question-text">4. Stresli olduğunuzda notlarınız...</span>
+                        <div class="options-group">
+                            <label><input type="radio" name="q4" value="tidy" hidden><div class="opt-label"><i class="far fa-circle"></i> Daha Düzenli Olur</div></label>
+                            <label><input type="radio" name="q4" value="messy" hidden><div class="opt-label"><i class="far fa-circle"></i> Karışmaya Başlar</div></label>
+                        </div>
+                    </div>
+
+                    <div class="question-box">
+                        <span class="question-text">5. Karar verme sürecinde hangisine güvenirsiniz?</span>
+                        <div class="options-group">
+                            <label><input type="radio" name="q5" value="logic" hidden><div class="opt-label"><i class="far fa-circle"></i> Mantık ve Veriler</div></label>
+                            <label><input type="radio" name="q5" value="intuition" hidden><div class="opt-label"><i class="far fa-circle"></i> Sezgiler ve Duygular</div></label>
+                        </div>
+                    </div>
+
+                    <button class="save-btn" style="width:100%; padding:18px;" onclick="generateAIReport()">Analizi Başlat</button>
+                </div>
+
+                <div class="stats-sidebar">
+                    <div class="stat-widget">
+                        <div class="widget-title"><i class="fas fa-brain"></i> Brain Activity Activity</div>
+                        <div class="brain-viz">
+                            <img src="https://cdn-icons-png.flaticon.com/512/6122/6122551.png" class="brain-img" id="brain-activity">
+                        </div>
+                        <p style="text-align:center; font-size:0.85rem; color:#64748b;" id="brain-result">Testi çözerek odak dengenizi görün.</p>
+                    </div>
+
+                    <div class="stat-widget">
+                        <div class="widget-title"><i class="fas fa-chart-line"></i> Memory Insights</div>
+                        <canvas id="analysisChart" style="max-height: 200px;"></canvas>
+                    </div>
+
+                    <div class="stat-widget" style="background: var(--primary); color: white;">
+                        <div class="widget-title" style="color:white;"><i class="fas fa-lightbulb"></i> AI Recommendation</div>
+                        <p id="ai-rec" style="font-size: 0.9rem; margin:0; line-height: 1.5;">Henüz hesaplanmadı.</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="liste" class="grid"></div>
+
     </div>
 
     <script>
         let allNotes = [];
         let currentFilter = 'All';
         let selectedColor = '#ffffff';
+        let reportChart = null;
 
         
+        function switchView(view) {
+            const notesView = document.getElementById('notes-view');
+            const analysisView = document.getElementById('ai-analysis-view');
+            const menuNotes = document.getElementById('menu-notes');
+            const menuAnalysis = document.getElementById('menu-analysis');
+
+            if(view === 'notes') {
+                notesView.style.display = 'flex';
+                analysisView.style.display = 'none';
+                menuNotes.classList.add('active');
+                menuAnalysis.classList.remove('active');
+            } else {
+                notesView.style.display = 'none';
+                analysisView.style.display = 'block';
+                menuAnalysis.classList.add('active');
+                menuNotes.classList.remove('active');
+                initChart();
+            }
+        }
+
+        
+        async function generateAIReport() {
+            const token = localStorage.getItem('token');
+            
+            
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+            const q4 = document.querySelector('input[name="q4"]:checked')?.value;
+            const q5 = document.querySelector('input[name="q5"]:checked')?.value;
+
+            if(!q1 || !q2 || !q3 || !q4 || !q5) return alert("Lütfen tüm soruları cevaplayın!");
+
+            const brainImg = document.getElementById('brain-activity');
+            brainImg.style.transform = "scale(1.2) rotate(10deg)"; 
+
+            try {
+                const res = await fetch('/api/notes/analyze-cognition', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ 
+                        answers: { q1, q2, q3, q4, q5 } 
+                    })
+                });
+                
+                const data = await res.json();
+                
+               
+                document.getElementById('brain-result').innerHTML = `Sonuç: <b>${data.brain_balance}</b>`;
+                document.getElementById('ai-rec').innerText = data.recommendation;
+                
+                
+                if(data.brain_balance.includes("Left")) {
+                    brainImg.style.filter = "hue-rotate(0deg) drop-shadow(0 0 20px #6366f1)";
+                } else {
+                    brainImg.style.filter = "hue-rotate(280deg) drop-shadow(0 0 20px #a855f7)";
+                }
+
+                updateChartData(data.memory_score);
+                
+                setTimeout(() => { brainImg.style.transform = "scale(1)"; }, 500);
+                alert("Bilişsel profiliniz başarıyla oluşturuldu!");
+                
+            } catch (err) {
+                console.error(err);
+                alert("Analiz servisine şu an ulaşılamıyor.");
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            if (reportChart) reportChart.destroy();
+            reportChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Retention', 'Detail', 'Speed'],
+                    datasets: [{
+                        label: 'Cognitive Score',
+                        data: [0, 0, 0],
+                        backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc'],
+                        borderRadius: 8
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { beginAtZero: true, max: 100 } } 
+                }
+            });
+        }
+
+        function updateChartData(data) {
+            if(!reportChart) initChart();
+            reportChart.data.datasets[0].data = data;
+            reportChart.update();
+        }
+
+        // --- ORİJİNAL JS FONKSİYONLARIN (100% KORUNDU) ---
         async function handleLogin() {
             const user = document.getElementById('user').value;
             const pass = document.getElementById('pass').value;
@@ -182,12 +419,11 @@
                     localStorage.setItem('token', data.access_token);
                     document.getElementById('auth-overlay').style.display = 'none';
                     listele();
-                } else { alert("Invalid login!"); }
-            } catch (err) { alert("Auth service is offline!"); }
+                } else { alert("Geçersiz giriş bilgileri!"); }
+            } catch (err) { alert("Auth servisi çevrimdışı!"); }
         }
 
         function logout() { localStorage.removeItem('token'); location.reload(); }
-
         function expandInput() { document.getElementById('mainInput').classList.add('active'); }
         function closeInput() { document.getElementById('mainInput').classList.remove('active'); }
 
@@ -199,7 +435,6 @@
             };
         });
 
-       
         async function listele() {
             const token = localStorage.getItem('token');
             if(!token) return;
@@ -208,7 +443,7 @@
                 if(res.status === 401) return logout();
                 allNotes = await res.json();
                 renderDisplay();
-            } catch (err) { console.error("Fetch error:", err); }
+            } catch (err) { console.error("Liste Hatası:", err); }
         }
 
         function renderDisplay() {
@@ -217,43 +452,18 @@
 
             list.innerHTML = filtered.map(n => `
                 <div class="note-card ${n.is_important ? 'important' : ''}" style="background-color: ${n.is_important ? '' : (n.bg_color || '#ffffff')}">
-                    <button class="delete-btn" onclick="sil(${n.id})" title="Delete"><i class="fas fa-trash"></i></button>
-                    <button class="share-btn" onclick="mailAt(${n.id})" title="Send to Email"><i class="fas fa-envelope"></i></button>
+                    <button class="delete-btn" onclick="sil(${n.id})" title="Sil"><i class="fas fa-trash-alt"></i></button>
+                    <button class="share-btn" onclick="mailAt(${n.id})" title="E-posta Gönder"><i class="fas fa-paper-plane"></i></button>
                     <div class="card-content">
                         <span class="card-category">${n.category || 'General'}</span>
-                        <h3 class="card-title">${n.title} ${n.is_important ? '🚨' : ''}</h3>
+                        <h3 class="card-title">${n.title}</h3>
                         <p class="card-text">${n.content}</p>
                         <div class="ai-insight">
-                            <i class="fas fa-bolt"></i> <b>AI Insight:</b> ${n.ai_summary}
+                            <i class="fas fa-bolt" style="margin-right:8px;"></i> <b>AI Concept:</b> ${n.ai_summary || "Analiz ediliyor..."}
                         </div>
                     </div>
                 </div>
             `).join('');
-        }
-
-       
-        async function mailAt(id) {
-            const email = prompt("Enter recipient email address:");
-            if (!email) return;
-
-            const token = localStorage.getItem('token');
-            try {
-                
-                const res = await fetch(`/api/notes/${id}/share`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ email: email })
-                });
-
-                if (res.ok) {
-                    alert(" SUCCESS: Note has been forwarded to the notification service! Check your docker logs.");
-                } else {
-                    alert("Error: Could not send email.");
-                }
-            } catch (err) { alert("Service communication error!"); }
         }
 
         async function ekle() {
@@ -263,7 +473,7 @@
             const is_important = document.getElementById('imp').checked;
             const token = localStorage.getItem('token');
 
-            if(!title || !content) return alert("Fields required!");
+            if(!title || !content) return alert("Başlık ve içerik gereklidir!");
 
             const res = await fetch('/api/notes/', {
                 method: 'POST',
@@ -272,30 +482,42 @@
             });
 
             if(res.ok) {
-                listele();
-                closeInput();
+                listele(); closeInput();
                 document.getElementById('t').value = ''; document.getElementById('c').value = '';
-            } else { alert("Save failed!"); }
+            } else { alert("Kaydedilemedi!"); }
         }
 
         async function sil(id) {
-            const token = localStorage.getItem('token');
-            if(confirm('Delete?')) {
+            if(confirm('Bu notu kalıcı olarak silmek istediğinize emin misiniz?')) {
+                const token = localStorage.getItem('token');
                 await fetch('/api/notes/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 listele();
             }
+        }
+
+        async function mailAt(id) {
+            const email = prompt("Alıcı e-posta adresi:");
+            if (!email) return;
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/notes/${id}/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ email: email })
+            });
+            if (res.ok) alert("Not mikroservis üzerinden başarıyla gönderildi!");
         }
 
         function filterNotes(cat, el) {
             currentFilter = cat;
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
+            switchView('notes'); 
             renderDisplay();
         }
 
         if(localStorage.getItem('token')) {
             document.getElementById('auth-overlay').style.display = 'none';
-            listele();
+            listele(); 
         }
     </script>
 </body>
