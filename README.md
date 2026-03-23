@@ -26,20 +26,6 @@ Database Layer (SQLAlchemy): Manages persistent storage with PostgreSQL/SQLite.
 
 Gateway (Nginx): Acts as a reverse proxy, orchestrating traffic between services.
 
- Infrastructure Tree
-Plaintext
-NOTES-MICROSERVICE
-├── 📂 .github/workflows      # CI/CD Pipelines (GitHub Actions)
-├── 📂 auth-service           # JWT Authentication Provider
-├── 📂 gateway                # Nginx Reverse Proxy Configuration
-├── 📂 notes-service          # Core Logic & AI Analysis Engine
-│   ├── 📂 app/api            # Endpoints & Schemas
-│   ├── 📂 app/core           # Business Logic
-│   ├── 📂 app/db             # Models & Database Migrations
-│   └── 📂 static             # Advanced Dashboard UI
-└── 📂 notification-service   # Async Email Microservice
- DevOps & CI/CD Excellence
-This project was built with a DevOps-first mindset to ensure 100% reliability and automated delivery.
 
 1. Complete CI/CD Pipeline
 We implemented a professional pipeline using GitHub Actions. Every "push" to the main branch triggers:
