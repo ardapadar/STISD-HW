@@ -1,6 +1,8 @@
 AI Intelligent Note Pro - Ultra Dashboard
 AI Intelligent Note Pro is a cutting-edge, microservice-based ecosystem designed to transform traditional note-taking into a cognitive behavioral analysis tool. The platform utilizes a deterministic AI engine to evaluate user thought patterns and provide real-time cognitive insights.
 
+<img width="1657" height="908" alt="image" src="https://github.com/user-attachments/assets/07e5691f-de48-43db-8334-92583144848a" />
+
  Project Overview
 This project implements a high-performance microservice stack, orchestrated with Docker, secured with JWT, and automated via a robust CI/CD pipeline. It features a "Cognitive Intelligence Dashboard" that analyzes user data to determine brain dominance and memory metrics.
 
@@ -16,6 +18,8 @@ Asynchronous Communication: Inter-service communication via HTTPX for high-effic
 Pro Dashboard UI: A modern, glassmorphic interface built with Chart.js and Plus Jakarta Sans.
 
  Technical Architecture and Infrastructure
+ <img width="945" height="516" alt="image" src="https://github.com/user-attachments/assets/50e5b269-cfe9-4016-a608-cdd8bdbea458" />
+
 The system follows a Clean Architecture pattern, ensuring separation of concerns across multiple layers:
 
 API Layer (FastAPI): Handles request routing, Pydantic validation, and authentication.
@@ -25,6 +29,9 @@ Core Logic (Service Layer): Executes business rules and the AI cognitive scoring
 Database Layer (SQLAlchemy): Manages persistent storage with PostgreSQL/SQLite.
 
 Gateway (Nginx): Acts as a reverse proxy, orchestrating traffic between services.
+
+<img width="914" height="284" alt="image" src="https://github.com/user-attachments/assets/e9126675-78fa-429d-94fa-6d0d27f05c80" />
+
 
 
 1. Complete CI/CD Pipeline
