@@ -16,9 +16,18 @@ app.add_middleware(
 SECRET_KEY = "iau_secret"
 ALGORITHM = "HS256"
 
+@app.get("/")
+async def root():
+    """Servisin ana dizinine erişildiğinde çalışır."""
+    return {"message": "Auth Service Online"}
+
+@app.get("/health")
+async def health_check():
+    """Docker Healthcheck'in sorguladığı özel adres."""
+    return {"status": "healthy", "service": "auth-service"}
+
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    
     print(f"DEBUG: {form_data.username} giriş yapmaya çalışıyor...")
     
     if form_data.username == "admin" and form_data.password == "1234":

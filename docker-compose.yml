@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-
   db:
     image: postgres:15-alpine
+    restart: always  
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -14,26 +14,38 @@ services:
       timeout: 5s
       retries: 5
 
-  
   notes-service:
     build: ./notes-service
+    restart: always  
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/notesdb
       - PYTHONPATH=.
     depends_on:
       db:
         condition: service_healthy
-
+    healthcheck:
+      
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/notes/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   auth-service:
     build: ./auth-service
+    restart: always  
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   notification-service:
     build: ./notification-service
+    restart: always  
 
-  
   gateway:
     image: nginx:alpine
+    restart: always  
     ports:
       - "80:80"  
     volumes:
