@@ -3,342 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Intelligent Note Pro - Ultra Dashboard</title>
+    <title>Kawien AI - Intelligent Note Ecosystem</title>
+    <!-- Premium Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         :root {
             --primary: #6366f1;
+            --primary-dark: #4f46e5;
             --sidebar-bg: #ffffff;
             --main-bg: #f8f9ff; 
-            --card-default: #ffffff;
-            --card-red: #fee2e2;
+            --accent-green: #10b981; /* User favorite color */
             --card-red-border: #ef4444;
-            --glass-bg: rgba(255, 255, 255, 0.7);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.7);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        * { box-sizing: border-box; }
 
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--main-bg); margin: 0; display: flex; height: 100vh; overflow: hidden;
+            background: var(--main-bg); margin: 0; display: flex; height: 100vh; 
+            overflow: hidden; color: var(--text-main);
         }
 
-      
-        #auth-overlay {
-            position: fixed; inset: 0; background: rgba(243, 244, 246, 0.98);
-            z-index: 10000; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(15px);
+        /* --- AUTHENTICATION OVERLAY --- */
+        #auth-overlay { 
+            position: fixed; inset: 0; background: rgba(243, 244, 246, 0.98); 
+            z-index: 10000; display: flex; align-items: center; justify-content: center; 
+            backdrop-filter: blur(20px); 
         }
-        .login-card {
-            background: white; padding: 40px; border-radius: 32px; width: 100%; max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); text-align: center;
+        .login-card { 
+            background: white; padding: 50px; border-radius: 40px; width: 100%; 
+            max-width: 420px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.1); 
+            text-align: center; border: 1px solid #eef2ff; 
         }
-        .login-input {
-            width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e5e7eb;
-            border-radius: 12px; outline: none; box-sizing: border-box; font-size: 1rem;
+        .login-input { 
+            width: 100%; padding: 16px; margin: 12px 0; border: 1px solid #e2e8f0; 
+            border-radius: 16px; outline: none; transition: var(--transition); font-size: 1rem; 
         }
+        .login-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
+        /* --- SIDEBAR --- */
         .sidebar { 
-            width: 280px; background: var(--sidebar-bg); border-right: 1px solid #eef2ff;
-            padding: 30px 20px; display: flex; flex-direction: column; gap: 8px;
+            width: 280px; background: var(--sidebar-bg); border-right: 1px solid #eef2ff; 
+            padding: 40px 24px; display: flex; flex-direction: column; gap: 10px; 
         }
         .logo { 
-            font-weight: 800; font-size: 1rem; color: var(--primary); margin-bottom: 40px; 
-            display: flex; align-items: center; gap: 12px; line-height: 1.2;
+            font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-bottom: 50px; 
+            display: flex; align-items: center; gap: 14px; letter-spacing: -0.5px; 
         }
-        
         .nav-item { 
-            padding: 14px 18px; border-radius: 16px; cursor: pointer; color: #64748b;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; font-weight: 600;
+            padding: 16px 20px; border-radius: 20px; cursor: pointer; color: var(--text-muted); 
+            transition: var(--transition); display: flex; align-items: center; gap: 14px; font-weight: 600; 
         }
-        .nav-item:hover { background: #f1f5f9; color: var(--primary); transform: translateX(5px); }
-        .nav-item.active { background: #eef2ff; color: var(--primary); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
-        .nav-item i { font-size: 1.1rem; }
+        .nav-item:hover { background: #f8fafc; color: var(--primary); transform: translateX(8px); }
+        .nav-item.active { background: #eef2ff; color: var(--primary); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15); }
 
-       
-        .content-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; align-items: center; padding: 40px 20px; }
-        
-       
-        .input-container {
-            width: 100%; max-width: 700px; background: white; border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eef2ff;
-            margin-bottom: 40px; transition: 0.4s ease; padding: 12px 20px;
+        /* --- MAIN CONTENT --- */
+        .content-area { 
+            flex: 1; display: flex; flex-direction: column; overflow-y: auto; 
+            align-items: center; padding: 50px 30px; scroll-behavior: smooth; 
         }
+
+        /* --- MODERN INPUT PANEL --- */
+        .input-container { 
+            width: 100%; max-width: 800px; background: white; border-radius: 35px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.02); border: 1px solid #eef2ff; 
+            margin-bottom: 50px; padding: 25px 35px; transition: var(--transition); 
+        }
+        .input-container.active { box-shadow: 0 25px 50px rgba(99, 102, 241, 0.08); transform: translateY(-2px); }
+        
         .input-header { display: flex; align-items: center; justify-content: space-between; }
-        .input-header input { border: none; outline: none; width: 100%; font-size: 1.1rem; font-weight: 600; padding: 12px 0; color: #1e293b; }
-        .input-header input::placeholder { color: #94a3b8; }
-        
-        #expanded-controls { display: none; margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px; animation: fadeIn 0.3s; }
+        .input-header input { 
+            border: none; outline: none; width: 100%; font-size: 1.3rem; 
+            font-weight: 700; padding: 15px 0; color: #0f172a; 
+        }
+        .input-header input::placeholder { color: #cbd5e1; }
+
+        #expanded-controls { 
+            display: none; margin-top: 25px; border-top: 1px solid #f1f5f9; 
+            padding-top: 25px; animation: slideDown 0.4s ease-out; 
+        }
         .input-container.active #expanded-controls { display: block; }
-        
-        textarea { width: 100%; border: none; outline: none; resize: none; font-family: inherit; font-size: 1rem; color: #475569; min-height: 100px; }
-        
-        .control-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-top: 20px; }
-        select, .url-input { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; color: #475569; outline: none; }
-        
-        .color-picker { display: flex; gap: 8px; }
-        .color-opt { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
-        .color-opt.selected { border-color: #cbd5e1; transform: scale(1.1); }
 
-       
-        .grid { width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        textarea { 
+            width: 100%; border: none; outline: none; resize: none; font-family: inherit; 
+            font-size: 1.1rem; color: #475569; min-height: 140px; line-height: 1.7; 
+        }
+
+        .control-row { 
+            display: flex; flex-wrap: wrap; gap: 20px; align-items: center; 
+            margin-top: 25px; justify-content: space-between;
+        }
+
+        .category-select { 
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; 
+            padding: 12px 18px; font-weight: 600; color: #475569; outline: none; 
+        }
+
+        .color-picker { display: flex; gap: 12px; padding: 10px 18px; background: #f8fafc; border-radius: 20px; }
+        .color-opt { 
+            width: 26px; height: 26px; border-radius: 50%; cursor: pointer; 
+            border: 3px solid transparent; transition: var(--transition); 
+        }
+        .color-opt.selected { border-color: #cbd5e1; transform: scale(1.3); }
+
+        .important-toggle { 
+            display: flex; align-items: center; gap: 10px; font-weight: 700; 
+            color: var(--text-muted); cursor: pointer; 
+        }
+
+        /* --- NOTES GRID --- */
+        .grid { 
+            width: 100%; max-width: 1250px; display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; 
+        }
         .note-card { 
-            background: white; border-radius: 24px; border: 1px solid #f1f5f9;
-            transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; height: fit-content;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+            background: white; border-radius: 35px; border: 1px solid #f1f5f9; 
+            transition: var(--transition); position: relative; display: flex; 
+            flex-direction: column; overflow: hidden; animation: fadeIn 0.5s ease;
         }
-        .note-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
-        .note-card.important { border-left: 6px solid var(--card-red-border) !important; background-color: #fffafb !important; }
-
-        .card-content { padding: 20px; }
-        .card-category { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 12px; display: block; opacity: 0.8; }
-        .card-title { margin: 0 0 12px 0; font-size: 1.2rem; font-weight: 700; color: #1e293b; line-height: 1.3; }
-        .card-text { font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0; }
-
-        .ai-insight { 
-            margin-top: 20px; background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%); 
-            border-radius: 16px; padding: 15px; font-size: 0.85rem; border: 1px solid #eef2ff; color: #4f46e5;
+        .note-card:hover { transform: translateY(-12px); box-shadow: 0 30px 60px -12px rgba(0,0,0,0.08); }
+        .note-card.high-priority { 
+            border-left: 10px solid var(--card-red-border) !important; 
+            background: linear-gradient(135deg, #fffafb 0%, #ffffff 100%) !important; 
         }
 
-       
-        #ai-analysis-view { display: none; width: 100%; max-width: 1200px; animation: slideUp 0.5s ease; }
-        .analysis-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; width: 100%; }
+        .card-content { padding: 30px; }
+        .card-category { 
+            font-size: 0.75rem; font-weight: 800; text-transform: uppercase; 
+            color: var(--primary); margin-bottom: 15px; letter-spacing: 1px; display: block; 
+        }
+        .card-title { margin: 0 0 15px 0; font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1.3; }
+        .card-text { font-size: 1.05rem; color: #475569; line-height: 1.6; margin: 0; }
+
+        .ai-summary-box { 
+            margin-top: 20px; background: rgba(255,255,255,0.6); border-radius: 20px; 
+            padding: 15px; font-size: 0.9rem; border: 1px solid #eef2ff; color: var(--primary-dark); 
+            font-weight: 600; display: flex; align-items: flex-start; gap: 10px;
+        }
+
+        .card-actions { 
+            position: absolute; top: 25px; right: 25px; display: flex; 
+            gap: 12px; opacity: 0; transition: var(--transition); 
+        }
+        .note-card:hover .card-actions { opacity: 1; }
+        .action-btn { 
+            background: white; border: none; border-radius: 14px; width: 42px; 
+            height: 42px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.06); 
+            display: flex; align-items: center; justify-content: center; transition: var(--transition); 
+        }
+        .action-btn:hover { transform: scale(1.15); }
+        .btn-delete { color: #ef4444; }
+        .btn-share { color: var(--primary); }
+
+        /* --- AI ANALYSIS VIEW --- */
+        #ai-analysis-view { display: none; width: 100%; max-width: 1200px; animation: slideUp 0.6s ease; }
+        .analysis-header { margin-bottom: 40px; text-align: left; }
+        .analysis-header h1 { font-weight: 800; font-size: 2.2rem; margin-bottom: 10px; }
+
+        .analysis-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; }
+        .personality-card { 
+            background: white; border-radius: 45px; padding: 50px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.02); border: 1px solid #eef2ff;
+        }
+
+        .question-box { margin-bottom: 40px; }
+        .question-text { font-weight: 800; font-size: 1.1rem; color: #0f172a; margin-bottom: 20px; display: block; }
+        .options-stack { display: flex; flex-direction: column; gap: 12px; }
         
-        .personality-card { background: white; border-radius: 32px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
-        .question-box { margin-bottom: 35px; }
-        .question-text { font-weight: 700; color: #1e293b; margin-bottom: 15px; display: block; }
-        .options-group { display: flex; flex-direction: column; gap: 10px; }
         .opt-label { 
-            padding: 14px 20px; border-radius: 16px; background: #f8fafc; border: 1.5px solid #f1f5f9; 
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-weight: 500;
+            padding: 18px 25px; border-radius: 20px; background: #f8fafc; 
+            border: 2px solid #f1f5f9; cursor: pointer; transition: var(--transition); 
+            display: flex; align-items: center; gap: 15px; font-weight: 600; 
         }
-        .opt-label:hover { background: #f1f5f9; }
-        input[type="radio"]:checked + .opt-label { background: #eef2ff; border-color: var(--primary); color: var(--primary); }
-        
-        .stats-sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .stat-widget { background: white; border-radius: 28px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
-        .widget-title { font-weight: 800; font-size: 0.9rem; color: #1e293b; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; text-transform: uppercase; }
-        
-        .brain-viz { display: flex; justify-content: center; position: relative; margin: 20px 0; }
-        .brain-img { 
-            width: 180px; 
-            opacity: 0.95; 
-            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.2));
-            animation: pulse 3s infinite ease-in-out;
+        .opt-label:hover { background: #f1f5f9; border-color: #e2e8f0; }
+        input[type="radio"]:checked + .opt-label { 
+            background: #eef2ff; border-color: var(--primary); color: var(--primary); 
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.1); 
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
+        .stats-sidebar { display: flex; flex-direction: column; gap: 30px; }
+        .stat-widget { background: white; border-radius: 40px; padding: 40px; box-shadow: 0 15px 30px rgba(0,0,0,0.02); border: 1px solid #eef2ff; }
         
-        .save-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
-        .delete-btn, .share-btn { 
-            position: absolute; top: 15px; background: white; border: none; border-radius: 12px; width: 34px; height: 34px; 
-            cursor: pointer; opacity: 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        /* Fixed Brain Visualization */
+        .brain-viz { 
+            text-align: center; position: relative; padding: 20px 0;
+            display: flex; flex-direction: column; align-items: center;
         }
-        .delete-btn { right: 15px; color: #ef4444; }
-        .share-btn { right: 55px; color: var(--primary); }
-        .note-card:hover .delete-btn, .note-card:hover .share-btn { opacity: 1; }
+        .brain-icon-large { 
+            font-size: 6rem; color: var(--primary); 
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+            animation: pulseBrain 3s infinite ease-in-out;
+            transition: var(--transition);
+        }
+        .brain-label { 
+            margin-top: 25px; font-weight: 800; font-size: 1.1rem; color: #1e293b;
+            padding: 10px 20px; background: #f1f5f9; border-radius: 15px;
+        }
 
+        .recommendation-box { 
+            background: var(--primary); color: white; border-radius: 35px; 
+            padding: 35px; box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        }
+        .rec-title { font-weight: 800; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        .save-btn { 
+            background: var(--primary); color: white; border: none; padding: 18px 36px; 
+            border-radius: 20px; font-weight: 800; cursor: pointer; transition: var(--transition); 
+            width: 100%; font-size: 1rem;
+        }
+        .save-btn:hover { 
+            background: var(--primary-dark); transform: translateY(-4px); 
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.3); 
+        }
+
+        /* --- ANIMATIONS --- */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseBrain { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+    <!-- AUTHENTICATION GATE -->
     <div id="auth-overlay">
         <div class="login-card">
-            <div class="logo" style="justify-content:center; margin-bottom:10px;"><i class="fas fa-robot"></i> AI NOTES PRO</div>
-            <p style="color:#64748b; font-size:0.9rem; margin-bottom:30px;">Microservice Auth Gateway</p>
-            <input type="text" id="user" class="login-input" placeholder="Username (admin)">
-            <input type="password" id="pass" class="login-input" placeholder="Password (1234)">
-            <button class="save-btn" onclick="handleLogin()" style="width:100%; margin-top:15px;">Access Dashboard</button>
+            <div class="logo" style="justify-content:center; margin-bottom:10px;">
+                <i class="fas fa-microchip"></i> KAWIEN AI
+            </div>
+            <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:35px;">Intelligent Ecosystem Gateway</p>
+            <input type="text" id="username_field" class="login-input" placeholder="Neural Identifier (Admin)">
+            <input type="password" id="password_field" class="login-input" placeholder="Security Sequence">
+            <button class="save-btn" onclick="authenticateUser()" style="margin-top:20px;">Initialize Link</button>
         </div>
     </div>
 
+    <!-- LEFT NAVIGATION -->
     <div class="sidebar">
         <div class="logo">
-            <i class="fas fa-brain" style="font-size: 1.8rem;"></i> 
-            <div>AI INTELLIGENT<br><span style="font-weight:400; font-size:0.8rem; color:#94a3b8">Note Ecosystem</span></div>
+            <i class="fas fa-brain"></i> 
+            <div>KAWIEN AI<br><span style="font-weight:400; font-size:0.75rem; color:var(--text-muted)">Cognitive Workspace</span></div>
         </div>
         
-        <div class="nav-item active" id="menu-notes" onclick="switchView('notes')">
-            <i class="fas fa-sticky-note"></i> All Notes
+        <div class="nav-item active" id="btn-view-notes" onclick="navigateTo('notes')">
+            <i class="fas fa-layer-group"></i> All Thoughts
         </div>
-        <div class="nav-item" onclick="filterNotes('Work', this)"><i class="fas fa-briefcase"></i> Work</div>
-        <div class="nav-item" onclick="filterNotes('School', this)"><i class="fas fa-graduation-cap"></i> School</div>
-        <div class="nav-item" onclick="filterNotes('Personal', this)"><i class="fas fa-home"></i> Personal</div>
+        <div class="nav-item" onclick="applyLocalFilter('Work', this)"><i class="fas fa-briefcase"></i> Work</div>
+        <div class="nav-item" onclick="applyLocalFilter('School', this)"><i class="fas fa-graduation-cap"></i> School</div>
+        <div class="nav-item" onclick="applyLocalFilter('Personal', this)"><i class="fas fa-heart"></i> Personal</div>
         
-        <div class="nav-item" id="menu-analysis" onclick="switchView('analysis')" style="margin-top: 20px; background: #f1f5f9;">
-            <i class="fas fa-chart-pie" style="color: var(--primary)"></i> AI Analysis
+        <div class="nav-item" id="btn-view-analysis" onclick="navigateTo('analysis')" style="margin-top: 30px; background: #f8fafc;">
+            <i class="fas fa-chart-line" style="color: var(--primary)"></i> AI Insights
         </div>
         
-        <div class="nav-item" onclick="logout()" style="margin-top: auto; color: #ef4444;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div class="nav-item" onclick="terminateSession()" style="margin-top: auto; color: #ef4444;">
+            <i class="fas fa-power-off"></i> Terminate Link
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="content-area">
         
+        <!-- NOTES VIEW -->
         <div id="notes-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div class="input-container" id="mainInput">
+            <div class="input-container" id="mainNoteForm">
                 <div class="input-header">
-                    <input type="text" id="t" placeholder="What's on your mind?..." onfocus="expandInput()">
-                    <i class="fas fa-magic" style="color:#cbd5e1"></i>
+                    <input type="text" id="note_title" placeholder="Capture your breakthrough..." onfocus="activateInput()">
+                    <i class="fas fa-sparkles" style="color:#cbd5e1"></i>
                 </div>
                 <div id="expanded-controls">
-                    <textarea id="c" rows="3" placeholder="Describe your thought in detail... AI will handle the rest."></textarea>
+                    <textarea id="note_content" placeholder="Describe the neural concept in detail... our engine will automatically handle the importance and categorization."></textarea>
+                    
                     <div class="control-row">
-                        <select id="cat">
-                            <option value="General">General</option>
-                            <option value="Work">Work</option>
-                            <option value="School">School</option>
-                            <option value="Personal">Personal</option>
+                        <select id="note_category" class="category-select">
+                            <option value="General">General Context</option>
+                            <option value="Work">Professional (Work)</option>
+                            <option value="School">Academic (School)</option>
+                            <option value="Personal">Personal Life</option>
                         </select>
-                        <input type="text" id="imgUrl" class="url-input" placeholder="Image URL (Optional)">
-                        <div class="color-picker" id="picker">
-                            <div class="color-opt selected" style="background:#ffffff" data-color="#ffffff"></div>
-                            <div class="color-opt" style="background:#fef3c7" data-color="#fef3c7"></div>
-                            <div class="color-opt" style="background:#d1fae5" data-color="#d1fae5"></div>
-                            <div class="color-opt" style="background:#e0e7ff" data-color="#e0e7ff"></div>
-                            <div class="color-opt" style="background:#fae8ff" data-color="#fae8ff"></div>
+                        
+                        <div class="color-picker" id="color_palette">
+                            <div class="color-opt selected" style="background:#ffffff" data-hex="#ffffff"></div>
+                            <div class="color-opt" style="background:#fef3c7" data-hex="#fef3c7"></div>
+                            <div class="color-opt" style="background:#d1fae5" data-hex="#d1fae5"></div>
+                            <div class="color-opt" style="background:#e0e7ff" data-hex="#e0e7ff"></div>
+                            <div class="color-opt" style="background:#fae8ff" data-hex="#fae8ff"></div>
                         </div>
-                        <label style="font-size:0.85rem; display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#475569">
-                            <input type="checkbox" id="imp"> Important
+
+                        <label class="important-toggle">
+                            <input type="checkbox" id="note_priority" style="width:18px; height:18px;"> High Priority
                         </label>
                     </div>
-                    <div style="margin-top:25px; border-top:1px solid #f1f5f9; padding-top:20px; overflow:hidden;">
-                        <button class="save-btn" onclick="ekle()">Save Thought</button>
-                        <button style="float:right; background:none; border:none; color:#94a3b8; font-weight:600; cursor:pointer;" onclick="closeInput()">Discard</button>
+
+                    <div style="margin-top:35px; border-top:1px solid #f1f5f9; padding-top:25px; display:flex; justify-content:space-between; align-items:center;">
+                        <button class="save-btn" onclick="saveNewThought()" style="width: auto; padding: 15px 40px;">Sync Thought</button>
+                        <button style="background:none; border:none; color:var(--text-muted); font-weight:700; cursor:pointer;" onclick="deactivateInput()">Discard</button>
                     </div>
                 </div>
             </div>
-            <div id="liste" class="grid"></div>
+
+            <!-- Notes Display Grid -->
+            <div id="notes_grid" class="grid"></div>
         </div>
 
+        <!-- AI ANALYSIS VIEW -->
         <div id="ai-analysis-view">
-            <h2 style="font-weight: 800; color: #1e293b; margin-bottom: 30px;">Cognitive Intelligence Dashboard</h2>
+            <div class="analysis-header">
+                <h1>Cognitive Analysis Dashboard</h1>
+                <p style="color:var(--text-muted)">Neural data processing based on your behavioral patterns.</p>
+            </div>
             
             <div class="analysis-grid">
                 <div class="personality-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                        <h3 style="margin:0; font-weight:800;">Bilişsel Davranış Analizi</h3>
-                        <span style="font-size:0.8rem; color:var(--primary); font-weight:700;">PRO AI MODULE</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+                        <h3 style="margin:0; font-weight:800; font-size: 1.4rem;">Behavioral Profiling</h3>
+                        <span style="font-size:0.75rem; color:var(--primary); font-weight:800; background:#eef2ff; padding:8px 15px; border-radius:12px;">PRO AI MODULE</span>
                     </div>
 
                     <div class="question-box">
-                        <span class="question-text">1. Küçük görevleri ne sıklıkla unutursunuz?</span>
-                        <div class="options-group">
-                            <label><input type="radio" name="q1" value="rarely" hidden><div class="opt-label"><i class="far fa-circle"></i> Nadiren</div></label>
-                            <label><input type="radio" name="q1" value="often" hidden><div class="opt-label"><i class="far fa-circle"></i> Sık Sık</div></label>
+                        <span class="question-text">1. How frequently do you forget minor tasks?</span>
+                        <div class="options-stack">
+                            <label><input type="radio" name="eng_q1" value="Nadiren" hidden><div class="opt-label"><i class="far fa-circle"></i> Rarely (High Focus)</div></label>
+                            <label><input type="radio" name="eng_q1" value="Sık Sık" hidden><div class="opt-label"><i class="far fa-circle"></i> Frequently (Distracted)</div></label>
                         </div>
                     </div>
 
                     <div class="question-box">
-                        <span class="question-text">2. Not alma stiliniz hangisidir?</span>
-                        <div class="options-group">
-                            <label><input type="radio" name="q2" value="detail" hidden><div class="opt-label"><i class="far fa-circle"></i> Detaylı ve Uzun</div></label>
-                            <label><input type="radio" name="q2" value="short" hidden><div class="opt-label"><i class="far fa-circle"></i> Kısa ve Özet</div></label>
+                        <span class="question-text">2. Which best describes your note-taking style?</span>
+                        <div class="options-stack">
+                            <label><input type="radio" name="eng_q2" value="Detaylı ve Uzun" hidden><div class="opt-label"><i class="far fa-circle"></i> Detailed & Structural</div></label>
+                            <label><input type="radio" name="eng_q2" value="Kısa ve Özet" hidden><div class="opt-label"><i class="far fa-circle"></i> Brief & Conceptual</div></label>
                         </div>
                     </div>
 
                     <div class="question-box">
-                        <span class="question-text">3. Notlarınızı ne sıklıkla gözden geçirirsiniz?</span>
-                        <div class="options-group">
-                            <label><input type="radio" name="q3" value="daily" hidden><div class="opt-label"><i class="far fa-circle"></i> Günlük</div></label>
-                            <label><input type="radio" name="q3" value="rarely" hidden><div class="opt-label"><i class="far fa-circle"></i> Sadece İhtiyaç Duyunca</div></label>
+                        <span class="question-text">3. How often do you review your past entries?</span>
+                        <div class="options-stack">
+                            <label><input type="radio" name="eng_q3" value="Günlük" hidden><div class="opt-label"><i class="far fa-circle"></i> Daily Routine</div></label>
+                            <label><input type="radio" name="eng_q3" value="Sadece İhtiyaç Duyunca" hidden><div class="opt-label"><i class="far fa-circle"></i> Only when necessary</div></label>
                         </div>
                     </div>
 
                     <div class="question-box">
-                        <span class="question-text">4. Stresli olduğunuzda notlarınız...</span>
-                        <div class="options-group">
-                            <label><input type="radio" name="q4" value="tidy" hidden><div class="opt-label"><i class="far fa-circle"></i> Daha Düzenli Olur</div></label>
-                            <label><input type="radio" name="q4" value="messy" hidden><div class="opt-label"><i class="far fa-circle"></i> Karışmaya Başlar</div></label>
+                        <span class="question-text">4. Under high stress, your organization...</span>
+                        <div class="options-stack">
+                            <label><input type="radio" name="eng_q4" value="Daha Düzenli Olur" hidden><div class="opt-label"><i class="far fa-circle"></i> Becomes more rigid/organized</div></label>
+                            <label><input type="radio" name="eng_q4" value="Karışmaya Başlar" hidden><div class="opt-label"><i class="far fa-circle"></i> Becomes chaotic/messy</div></label>
                         </div>
                     </div>
 
-                    <div class="question-box">
-                        <span class="question-text">5. Karar verme sürecinde hangisine güvenirsiniz?</span>
-                        <div class="options-group">
-                            <label><input type="radio" name="q5" value="logic" hidden><div class="opt-label"><i class="far fa-circle"></i> Mantık ve Veriler</div></label>
-                            <label><input type="radio" name="q5" value="intuition" hidden><div class="opt-label"><i class="far fa-circle"></i> Sezgiler ve Duygular</div></label>
-                        </div>
-                    </div>
-
-                    <button class="save-btn" style="width:100%; padding:18px;" onclick="generateAIReport()">Analizi Başlat</button>
+                    <button class="save-btn" onclick="triggerNeuralAnalysis()">Generate Profile</button>
                 </div>
 
                 <div class="stats-sidebar">
                     <div class="stat-widget">
-                        <div class="widget-title"><i class="fas fa-brain"></i> Brain Activity Activity</div>
+                        <div style="font-weight:800; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:25px; letter-spacing:1px;">Brain Dominance Map</div>
                         <div class="brain-viz">
-                            <img src="https://cdn-icons-png.flaticon.com/512/6122/6122551.png" class="brain-img" id="brain-activity">
+                            <i class="fas fa-brain brain-icon-large" id="dominance_icon"></i>
+                            <div class="brain-label" id="dominance_result">Awaiting neural data...</div>
                         </div>
-                        <p style="text-align:center; font-size:0.85rem; color:#64748b;" id="brain-result">Testi çözerek odak dengenizi görün.</p>
                     </div>
 
                     <div class="stat-widget">
-                        <div class="widget-title"><i class="fas fa-chart-line"></i> Memory Insights</div>
-                        <canvas id="analysisChart" style="max-height: 200px;"></canvas>
+                        <div style="font-weight:800; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:25px;">Memory Metrics</div>
+                        <canvas id="metricsChart" style="max-height: 200px;"></canvas>
                     </div>
 
-                    <div class="stat-widget" style="background: var(--primary); color: white;">
-                        <div class="widget-title" style="color:white;"><i class="fas fa-lightbulb"></i> AI Recommendation</div>
-                        <p id="ai-rec" style="font-size: 0.9rem; margin:0; line-height: 1.5;">Henüz hesaplanmadı.</p>
+                    <div class="recommendation-box">
+                        <div class="rec-title"><i class="fas fa-lightbulb"></i> Neural Optimization</div>
+                        <p id="rec_text" style="font-size: 1rem; margin:0; line-height: 1.6; font-weight: 500;">Please complete the behavioral profiling for AI-driven recommendations.</p>
+                        <div id="rec_rationale" style="margin-top:20px; font-size:0.85rem; opacity:0.85; line-height:1.5; font-style:italic;"></div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
+    <!-- CORE LOGIC SCRIPT -->
     <script>
-        let allNotes = [];
-        let currentFilter = 'All';
-        let selectedColor = '#ffffff';
-        let reportChart = null;
+        let sessionNotes = [];
+        let activeFilter = 'All';
+        let currentSelectedHex = '#ffffff';
+        let metricChartInstance = null;
 
-        
-        function switchView(view) {
-            const notesView = document.getElementById('notes-view');
-            const analysisView = document.getElementById('ai-analysis-view');
-            const menuNotes = document.getElementById('menu-notes');
-            const menuAnalysis = document.getElementById('menu-analysis');
+        // --- AUTHENTICATION ---
+        async function authenticateUser() {
+            const u = document.getElementById('username_field').value;
+            const p = document.getElementById('password_field').value;
+            const fd = new FormData();
+            fd.append('username', u);
+            fd.append('password', p);
+
+            try {
+                const res = await fetch('/api/auth/login', { method: 'POST', body: fd });
+                if(res.ok) {
+                    const d = await res.json();
+                    localStorage.setItem('kawien_token', d.access_token);
+                    document.getElementById('auth-overlay').style.opacity = '0';
+                    setTimeout(() => document.getElementById('auth-overlay').style.display = 'none', 400);
+                    refreshNoteGrid();
+                } else { alert("Access Denied: Invalid Security Sequence."); }
+            } catch (err) { alert("Core service unreachable."); }
+        }
+
+        function terminateSession() { 
+            localStorage.removeItem('kawien_token'); 
+            location.reload(); 
+        }
+
+        // --- UI NAVIGATION & ANIMATION ---
+        function navigateTo(view) {
+            const nv = document.getElementById('notes-view');
+            const av = document.getElementById('ai-analysis-view');
+            const btnN = document.getElementById('btn-view-notes');
+            const btnA = document.getElementById('btn-view-analysis');
 
             if(view === 'notes') {
-                notesView.style.display = 'flex';
-                analysisView.style.display = 'none';
-                menuNotes.classList.add('active');
-                menuAnalysis.classList.remove('active');
+                nv.style.display = 'flex';
+                av.style.display = 'none';
+                btnN.classList.add('active');
+                btnA.classList.remove('active');
             } else {
-                notesView.style.display = 'none';
-                analysisView.style.display = 'block';
-                menuAnalysis.classList.add('active');
-                menuNotes.classList.remove('active');
-                initChart();
+                nv.style.display = 'none';
+                av.style.display = 'block';
+                btnA.classList.add('active');
+                btnN.classList.remove('active');
+                initializeMetricsChart();
             }
         }
 
-        
-        async function generateAIReport() {
-            const token = localStorage.getItem('token');
-            
-            
-            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
-            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
-            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
-            const q4 = document.querySelector('input[name="q4"]:checked')?.value;
-            const q5 = document.querySelector('input[name="q5"]:checked')?.value;
+        function activateInput() { document.getElementById('mainNoteForm').classList.add('active'); }
+        function deactivateInput() { document.getElementById('mainNoteForm').classList.remove('active'); }
 
-            if(!q1 || !q2 || !q3 || !q4 || !q5) return alert("Lütfen tüm soruları cevaplayın!");
+        // Color Palette Selection
+        document.querySelectorAll('.color-opt').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.color-opt').forEach(d => d.classList.remove('selected'));
+                dot.classList.add('selected');
+                currentSelectedHex = dot.dataset.hex;
+            });
+        });
 
-            const brainImg = document.getElementById('brain-activity');
-            brainImg.style.transform = "scale(1.2) rotate(10deg)"; 
+        // --- DATA OPERATIONS ---
+        async function refreshNoteGrid() {
+            const token = localStorage.getItem('kawien_token');
+            if(!token) return;
+            try {
+                const res = await fetch('/api/notes/', { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                if(res.status === 401) terminateSession();
+                sessionNotes = await res.json();
+                renderNoteCards();
+            } catch (err) { console.error("Grid Sync Error:", err); }
+        }
+
+        function renderNoteCards() {
+            const grid = document.getElementById('notes_grid');
+            const filtered = activeFilter === 'All' ? sessionNotes : sessionNotes.filter(n => n.category === activeFilter);
+
+            grid.innerHTML = filtered.map(n => `
+                <div class="note-card ${n.is_important ? 'high-priority' : ''}" style="background-color: ${n.bg_color}">
+                    <div class="card-actions">
+                        <button class="action-btn btn-share" onclick="transmitToEmail(${n.id})" title="Share via Email"><i class="fas fa-paper-plane"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteThought(${n.id})" title="Delete Thought"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">${n.category || 'Thought'}</span>
+                        <h3 class="card-title">${n.title}</h3>
+                        <p class="card-text">${n.content}</p>
+                        <div class="ai-summary-box">
+                            <i class="fas fa-microchip"></i>
+                            <div><b>Neural Context:</b> ${n.ai_summary || "Analyzing node..."}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function saveNewThought() {
+            const t = document.getElementById('note_title').value;
+            const c = document.getElementById('note_content').value;
+            const cat = document.getElementById('note_category').value;
+            const imp = document.getElementById('note_priority').checked;
+            const token = localStorage.getItem('kawien_token');
+
+            if(!t || !c) { alert("Incomplete Data: Please provide title and content."); return; }
+
+            const payload = { 
+                title: t, 
+                content: c, 
+                category: cat, 
+                is_important: imp, 
+                bg_color: currentSelectedHex 
+            };
+
+            const res = await fetch('/api/notes/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                document.getElementById('note_title').value = '';
+                document.getElementById('note_content').value = '';
+                deactivateInput();
+                refreshNoteGrid();
+            } else { alert("Sync Failed: Check core service."); }
+        }
+
+        async function deleteThought(id) {
+            if(!confirm("Are you sure you want to delete this neural record?")) return;
+            const token = localStorage.getItem('kawien_token');
+            await fetch('/api/notes/' + id, { 
+                method: 'DELETE', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            refreshNoteGrid();
+        }
+
+        async function transmitToEmail(id) {
+            const email = prompt("Enter recipient identifier (Email):");
+            if (!email) return;
+            const token = localStorage.getItem('kawien_token');
+            const res = await fetch(`/api/notes/${id}/share`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ email: email })
+            });
+            if (res.ok) alert("Data successfully transmitted to: " + email);
+        }
+
+        function applyLocalFilter(cat, element) {
+            activeFilter = cat;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+            navigateTo('notes');
+            renderNoteCards();
+        }
+
+        // --- AI NEURAL ANALYSIS ---
+        async function triggerNeuralAnalysis() {
+            const token = localStorage.getItem('kawien_token');
+            const answers = {
+                q1: document.querySelector('input[name="eng_q1"]:checked')?.value,
+                q2: document.querySelector('input[name="eng_q2"]:checked')?.value,
+                q3: document.querySelector('input[name="eng_q3"]:checked')?.value,
+                q4: document.querySelector('input[name="eng_q4"]:checked')?.value
+            };
+
+            if(Object.values(answers).some(val => !val)) {
+                alert("Neural Mapping Incomplete: Please answer all profiling questions.");
+                return;
+            }
 
             try {
                 const res = await fetch('/api/notes/analyze-cognition', {
@@ -347,177 +582,70 @@
                         'Content-Type': 'application/json', 
                         'Authorization': `Bearer ${token}` 
                     },
-                    body: JSON.stringify({ 
-                        answers: { q1, q2, q3, q4, q5 } 
-                    })
+                    body: JSON.stringify({ answers })
                 });
                 
                 const data = await res.json();
                 
-               
-                document.getElementById('brain-result').innerHTML = `Sonuç: <b>${data.brain_balance}</b>`;
-                document.getElementById('ai-rec').innerText = data.recommendation;
+                // Update UI with dominanace data
+                const brainIcon = document.getElementById('dominance_icon');
+                const resultText = document.getElementById('dominance_result');
                 
-                
+                resultText.innerHTML = `Dominance: <b>${data.brain_balance}</b>`;
+                document.getElementById('rec_text').innerText = data.recommendation;
+                document.getElementById('rec_rationale').innerText = data.insight_text;
+
+                // Shift colors based on brain type
                 if(data.brain_balance.includes("Left")) {
-                    brainImg.style.filter = "hue-rotate(0deg) drop-shadow(0 0 20px #6366f1)";
+                    brainIcon.style.color = "#6366f1";
+                    brainIcon.style.filter = "drop-shadow(0 0 20px rgba(99, 102, 241, 0.5))";
                 } else {
-                    brainImg.style.filter = "hue-rotate(280deg) drop-shadow(0 0 20px #a855f7)";
+                    brainIcon.style.color = "#a855f7"; // Artistic Purple for Right Brain
+                    brainIcon.style.filter = "drop-shadow(0 0 20px rgba(168, 85, 247, 0.5))";
                 }
 
-                updateChartData(data.memory_score);
-                
-                setTimeout(() => { brainImg.style.transform = "scale(1)"; }, 500);
-                alert("Bilişsel profiliniz başarıyla oluşturuldu!");
-                
-            } catch (err) {
-                console.error(err);
-                alert("Analiz servisine şu an ulaşılamıyor.");
-            }
+                updateMetricsChart(data.memory_score);
+                alert("Neural Profiling Success: Ecosystem optimized.");
+
+            } catch (err) { alert("Analysis Gateway Offline."); }
         }
 
-        function initChart() {
-            const ctx = document.getElementById('analysisChart').getContext('2d');
-            if (reportChart) reportChart.destroy();
-            reportChart = new Chart(ctx, {
+        function initializeMetricsChart() {
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            if (metricChartInstance) metricChartInstance.destroy();
+            
+            metricChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Retention', 'Detail', 'Speed'],
+                    labels: ['Retention', 'Detail', 'Processing Speed'],
                     datasets: [{
-                        label: 'Cognitive Score',
+                        label: 'Cognitive Capacity',
                         data: [0, 0, 0],
                         backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc'],
-                        borderRadius: 8
+                        borderRadius: 12
                     }]
                 },
                 options: { 
                     responsive: true,
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { beginAtZero: true, max: 100 } } 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, max: 100, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    } 
                 }
             });
         }
 
-        function updateChartData(data) {
-            if(!reportChart) initChart();
-            reportChart.data.datasets[0].data = data;
-            reportChart.update();
+        function updateMetricsChart(scores) {
+            if(!metricChartInstance) initializeMetricsChart();
+            metricChartInstance.data.datasets[0].data = scores;
+            metricChartInstance.update();
         }
 
-        // --- ORİJİNAL JS FONKSİYONLARIN (100% KORUNDU) ---
-        async function handleLogin() {
-            const user = document.getElementById('user').value;
-            const pass = document.getElementById('pass').value;
-            const formData = new FormData();
-            formData.append('username', user);
-            formData.append('password', pass);
-
-            try {
-                const res = await fetch('/api/auth/login', { method: 'POST', body: formData });
-                if(res.ok) {
-                    const data = await res.json();
-                    localStorage.setItem('token', data.access_token);
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    listele();
-                } else { alert("Geçersiz giriş bilgileri!"); }
-            } catch (err) { alert("Auth servisi çevrimdışı!"); }
-        }
-
-        function logout() { localStorage.removeItem('token'); location.reload(); }
-        function expandInput() { document.getElementById('mainInput').classList.add('active'); }
-        function closeInput() { document.getElementById('mainInput').classList.remove('active'); }
-
-        document.querySelectorAll('.color-opt').forEach(opt => {
-            opt.onclick = () => {
-                document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                selectedColor = opt.dataset.color;
-            };
-        });
-
-        async function listele() {
-            const token = localStorage.getItem('token');
-            if(!token) return;
-            try {
-                const res = await fetch('/api/notes/', { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.status === 401) return logout();
-                allNotes = await res.json();
-                renderDisplay();
-            } catch (err) { console.error("Liste Hatası:", err); }
-        }
-
-        function renderDisplay() {
-            const list = document.getElementById('liste');
-            const filtered = currentFilter === 'All' ? allNotes : allNotes.filter(n => n.category === currentFilter);
-
-            list.innerHTML = filtered.map(n => `
-                <div class="note-card ${n.is_important ? 'important' : ''}" style="background-color: ${n.is_important ? '' : (n.bg_color || '#ffffff')}">
-                    <button class="delete-btn" onclick="sil(${n.id})" title="Sil"><i class="fas fa-trash-alt"></i></button>
-                    <button class="share-btn" onclick="mailAt(${n.id})" title="E-posta Gönder"><i class="fas fa-paper-plane"></i></button>
-                    <div class="card-content">
-                        <span class="card-category">${n.category || 'General'}</span>
-                        <h3 class="card-title">${n.title}</h3>
-                        <p class="card-text">${n.content}</p>
-                        <div class="ai-insight">
-                            <i class="fas fa-bolt" style="margin-right:8px;"></i> <b>AI Concept:</b> ${n.ai_summary || "Analiz ediliyor..."}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function ekle() {
-            const title = document.getElementById('t').value;
-            const content = document.getElementById('c').value;
-            const category = document.getElementById('cat').value;
-            const is_important = document.getElementById('imp').checked;
-            const token = localStorage.getItem('token');
-
-            if(!title || !content) return alert("Başlık ve içerik gereklidir!");
-
-            const res = await fetch('/api/notes/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ title, content, category, is_important, bg_color: selectedColor })
-            });
-
-            if(res.ok) {
-                listele(); closeInput();
-                document.getElementById('t').value = ''; document.getElementById('c').value = '';
-            } else { alert("Kaydedilemedi!"); }
-        }
-
-        async function sil(id) {
-            if(confirm('Bu notu kalıcı olarak silmek istediğinize emin misiniz?')) {
-                const token = localStorage.getItem('token');
-                await fetch('/api/notes/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                listele();
-            }
-        }
-
-        async function mailAt(id) {
-            const email = prompt("Alıcı e-posta adresi:");
-            if (!email) return;
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/notes/${id}/share`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ email: email })
-            });
-            if (res.ok) alert("Not mikroservis üzerinden başarıyla gönderildi!");
-        }
-
-        function filterNotes(cat, el) {
-            currentFilter = cat;
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            switchView('notes'); 
-            renderDisplay();
-        }
-
-        if(localStorage.getItem('token')) {
+        // Initialize state
+        if(localStorage.getItem('kawien_token')) {
             document.getElementById('auth-overlay').style.display = 'none';
-            listele(); 
+            refreshNoteGrid();
         }
     </script>
 </body>

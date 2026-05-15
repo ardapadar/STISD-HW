@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List, Dict
 from datetime import datetime
 
-
 class NoteBase(BaseModel):
     title: str
     content: str
@@ -16,22 +15,40 @@ class NoteCreate(NoteBase):
 class NoteResponse(NoteBase):
     id: int
     ai_summary: Optional[str] = None
+    # Yeni: Notun hangi bilişsel lobla ilgili olduğunu frontend'e bildirir
+    cognitive_tag: Optional[str] = "Analytical" 
+    created_at: datetime
     
     class Config:
         from_attributes = True
 
-
 class AnalysisRequest(BaseModel):
-    """5 soruluk testten gelen cevapları (q1, q2, q3, q4, q5) sözlük yapısında alır."""
+    """Dashboard'daki 4 ana sorudan gelen cevapları alır (image_6d8393.png)."""
     answers: Dict[str, str] 
 
 class AnalysisResponse(BaseModel):
-    """Dashboard'daki beyin animasyonu ve grafikleri besleyen veriler."""
-    brain_balance: str       
-    memory_score: List[int]  
-    recommendation: str      
-    insight_text: str        
+    """
+    Dashboard'daki beyin animasyonu, Memory Insights grafiği ve 
+    bilimsel öneri tablosunu besler (image_6d8afa.png).
+    """
+    brain_balance: str        # Örn: 'Right-Brained (Personal)'
+    memory_score: List[int]   # [Retention, Detail, Speed]
+    recommendation: str       # Egzersiz ve Takviye birleşimi
+    insight_text: str         # Scientific Rationale
 
+class CognitiveProfileResponse(BaseModel):
+    """Kullanıcının geçmiş analiz sonuçlarını listeleyebilmesi için."""
+    id: int
+    brain_balance: str
+    retention_score: float
+    detail_score: float
+    speed_score: float
+    recommendation_text: str
+    scientific_insight: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class CategoryStat(BaseModel):
     category: str
@@ -39,16 +56,13 @@ class CategoryStat(BaseModel):
     percentage: float
 
 class NoteStatsResponse(BaseModel):
-    """Analytics paneli için gereken tüm toplu veriler."""
     total_notes: int
     important_count: int
     category_distribution: List[CategoryStat]
-    ai_insight: Optional[str] = "Henüz yeterli veri yok..."
+    ai_insight: Optional[str] = "Henüz yeterly veri yok..."
     focus_alert: Optional[bool] = False
 
-
 class NoteShareRequest(BaseModel):
-    """EmailStr kullanarak geçersiz maillerin en baştan reddedilmesini sağlar."""
     email: EmailStr 
 
     class Config:

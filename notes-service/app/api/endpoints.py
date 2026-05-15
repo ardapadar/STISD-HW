@@ -11,21 +11,20 @@ from app.api import note_schema as schemas
 from app.core import note_service
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-logger = logging.getLogger("Notes-API")
+logger = logging.getLogger("Kawien-API")
 router = APIRouter()
 security = HTTPBearer()
 
+# Microservice URL for the notification engine
 NOTIFICATION_SERVICE_URL = "http://notification-service:8001/send-email"
 
 def get_current_user(token: HTTPAuthorizationCredentials = Depends(security)):
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Oturum açmanız gerekiyor"
+            detail="Session expired. Please re-authenticate."
         )
     return token.credentials
-
-
 
 @router.get("/", response_model=List[schemas.NoteResponse])
 def get_notes(db: Session = Depends(get_db), user_token: str = Depends(get_current_user)):
@@ -33,74 +32,44 @@ def get_notes(db: Session = Depends(get_db), user_token: str = Depends(get_curre
 
 @router.post("/", response_model=schemas.NoteResponse)
 def create_note(note: schemas.NoteCreate, db: Session = Depends(get_db), user_token: str = Depends(get_current_user)):
-    return note_service.create_new_note(db, note)
+    try:
+        return note_service.create_new_note(db, note)
+    except Exception as e:
+        logger.error(f"Sync Error: {e}")
+        raise HTTPException(status_code=500, detail="Neural Link Error: Could not save thought.")
 
 @router.delete("/{note_id}")
 def delete_note(note_id: int, db: Session = Depends(get_db), user_token: str = Depends(get_current_user)):
     if not note_service.delete_note(db, note_id):
-        raise HTTPException(status_code=404, detail="Not bulunamadı")
-    return {"status": "success"}
-
-
+        raise HTTPException(status_code=404, detail="Thought node not found.")
+    return {"status": "success", "message": "Node terminated."}
 
 @router.post("/analyze-cognition", response_model=schemas.AnalysisResponse)
 async def analyze_cognition(data: schemas.AnalysisRequest, user_token: str = Depends(get_current_user)):
-    """Frontend'deki 5 soruluk testin sonuçlarını işleyen derin analiz motoru."""
-    ans = data.answers
+    """
+    Processes behavioral profiling data and returns English recommendations.
+    Matches the Luxury Dashboard visualization.
+    """
+    try:
+        analysis = note_service.analyze_cognitive_activity(data.answers)
+        
+        # Mapping scores to [Retention, Detail, Speed] for Chart.js
+        scores = [
+            analysis["scores"]["left"] * 15,
+            analysis["scores"]["right"] * 12,
+            (analysis["scores"]["left"] + analysis["scores"]["right"]) * 7
+        ]
+        scores = [max(0, min(100, s)) for s in scores]
 
-    scores = [70, 70, 70] 
-    
-   
-    if ans.get("q1") == "often":
-        scores[0] -= 30
-    else:
-        scores[0] += 20
-
-    if ans.get("q2") == "short":
-        scores[1] -= 25
-        scores[2] += 20 
-    else:
-        scores[1] += 25
-
-    
-    if ans.get("q3") == "daily":
-        scores[0] += 15
-    else:
-        scores[0] -= 10
-
-   
-    if ans.get("q4") == "messy":
-        scores[1] -= 15
-    
-   
-    logic_score = 0
-    if ans.get("q5") == "logic":
-        logic_score += 40
-        brain_balance = "Left-Brained (Analytical)"
-    else:
-        logic_score -= 40
-        brain_balance = "Right-Brained (Creative)"
-
-    
-    scores = [max(0, min(100, s)) for s in scores]
-
-    
-    recommendations = []
-    if scores[0] < 50:
-        recommendations.append("Hatırlama oranını artırmak için notlarına 'Önemli' bayrağı ekle.")
-    if scores[1] < 50:
-        recommendations.append("Detayları kaçırmamak için AI Özetleme özelliğini kullan.")
-    if not recommendations:
-        recommendations.append("Harika bir dengeye sahipsin. Bu şekilde devam et!")
-
-    return {
-        "brain_balance": brain_balance,
-        "memory_score": scores,
-        "recommendation": " ".join(recommendations),
-        "insight_text": "Bilişsel Profiliniz Analiz Edildi."
-    }
-
-
+        return {
+            "brain_balance": analysis["target_region"],
+            "memory_score": scores,
+            "recommendation": f"Exercise: {analysis['recommended_exercise']} | Supplement: {analysis['supplement']}",
+            "insight_text": analysis["scientific_rationale"]
+        }
+    except Exception as e:
+        logger.error(f"Neural Analysis Error: {e}")
+        raise HTTPException(status_code=500, detail="Cognitive Engine Timeout.")
 
 @router.get("/stats", response_model=schemas.NoteStatsResponse)
 def get_note_stats(db: Session = Depends(get_db), user_token: str = Depends(get_current_user)):
@@ -109,7 +78,7 @@ def get_note_stats(db: Session = Depends(get_db), user_token: str = Depends(get_
         if total == 0:
             return {
                 "total_notes": 0, "important_count": 0, "category_distribution": [],
-                "ai_insight": "Henüz notun yok, analiz için biraz yazmalısın!", "focus_alert": False
+                "ai_insight": "Ecosystem is empty. Start capturing thoughts.", "focus_alert": False
             }
 
         stats = db.query(models.Note.category, func.count(models.Note.id)).group_by(models.Note.category).all()
@@ -123,22 +92,18 @@ def get_note_stats(db: Session = Depends(get_db), user_token: str = Depends(get_
             })
 
         important_count = db.query(models.Note).filter(models.Note.is_important == True).count()
-        
         top_cat = max(category_list, key=lambda x: x['count'])['category']
-        ai_insight = f"Zihniniz şu an en çok **{top_cat}** kategorisiyle meşgul."
-
+        
         return {
             "total_notes": total,
             "important_count": important_count,
             "category_distribution": category_list,
-            "ai_insight": ai_insight,
+            "ai_insight": f"Your neural focus is currently on **{top_cat}**.",
             "focus_alert": (important_count > total / 2)
         }
     except Exception as e:
-        logger.error(f"Stats Error: {e}")
-        raise HTTPException(status_code=500, detail="İstatistik hatası")
-
-
+        logger.error(f"Stats Processing Error: {e}")
+        raise HTTPException(status_code=500, detail="Data visualization failed.")
 
 @router.post("/{note_id}/share")
 async def share_note(
@@ -149,7 +114,7 @@ async def share_note(
 ):
     note = db.query(models.Note).filter(models.Note.id == note_id).first()
     if not note:
-        raise HTTPException(status_code=404, detail="Not bulunamadı")
+        raise HTTPException(status_code=404, detail="Thought not found.")
     
     async with httpx.AsyncClient() as client:
         try:
@@ -157,9 +122,9 @@ async def share_note(
             response = await client.post(NOTIFICATION_SERVICE_URL, json=payload, timeout=5.0)
             
             if response.status_code == 200:
-                return {"status": "success", "message": "E-posta başarıyla gönderildi."}
+                return {"status": "success", "message": "Neural data transmitted via email."}
             else:
-                raise HTTPException(status_code=500, detail="Bildirim servisi hatası.")
+                raise HTTPException(status_code=500, detail="Notification Microservice unreachable.")
         except Exception as e:
-            logger.error(f"Comm Error: {e}")
-            raise HTTPException(status_code=503, detail="E-posta servisi şu an kullanılamıyor.")
+            logger.error(f"Transmission Error: {e}")
+            raise HTTPException(status_code=503, detail="Email Gateway Offline.")
